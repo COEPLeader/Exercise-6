@@ -1,14 +1,14 @@
-|                             |
-|-----------------------------|
-| itle: 'Weekly Exercises #6' |
-| uthor: "Put your name here" |
-| utput:                      |
-| html_document:              |
-| keep_md: TRUE               |
-| toc: TRUE                   |
-| toc_float: TRUE             |
-| df_print: paged             |
-| code_download: true         |
+---
+title: 'Weekly Exercises #6'
+author: "Seth Buesing"
+output: 
+  html_document:
+    keep_md: TRUE
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_download: true
+---      
 
 ```{r setup, include=FALSE}
 #knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
@@ -84,6 +84,7 @@ Once your repository is created, you should always open your **project** rather 
   
   fake_harvest %>%
     arrange(weight)
+  #We see here that our "Missing" values (and "-" entries) are now NA.
 ```
 
 2.  Read in this [data](https://www.kaggle.com/heeraldedhia/groceries-dataset) from the kaggle website. You will need to download the data first. Save it to your project/repo folder. Do some quick checks of the data to assure it has been read in appropriately.
@@ -92,7 +93,7 @@ Once your repository is created, you should always open your **project** rather 
   groceries <- read_csv("Groceries_dataset.csv")
 
   view(groceries)
-  
+  #In view we can check to make sure all missing values are accounted for
   groceries %>% 
     mutate(across(where(is.character), as.factor), across(where(is.double), as.factor)) %>% 
     summary()
@@ -102,7 +103,7 @@ Once your repository is created, you should always open your **project** rather 
 
 I'm going to use the data from garden_harvest since my project data is 1 GB and I don't want to have to worry about including that with my exercise.
 
-```{r, fig.alt = "W"}
+```{r, fig.alt = "Table showing the harvests over time of each vegetable, split into varieties and by harvest date."}
   harvest_table <- garden_harvest %>% 
     gt(rowname_col = "variety",
        groupname_col = "vegetable") %>% 
@@ -111,6 +112,7 @@ I'm going to use the data from garden_harvest since my project data is 1 GB and 
     tab_options(column_labels.background.color = "blue") %>% 
     fmt_date(columns = c(date),
            date_style = "day_month")
+
   harvest_table
     
 ```
@@ -126,23 +128,25 @@ colors = scales::col_numeric(
 
 ![](garden_table.html){width="600," height="1000"}
 
+I would love to do this but I simply don't have the time or energy at this point during the semester. 
+
 5.  Use `patchwork` operators and functions to combine at least two graphs using your project data or `garden_harvest` data if your project data aren't read.
 
 ```{r}
 garden_harvest_maxbyday <- garden_harvest %>% 
-group_by(date, vegetable) %>% 
-summarize(veg_total = sum(weight))  %>% 
-mutate(weight_kg = veg_total/1000) %>% 
-slice_max(weight_kg, n= 1) %>% 
-ungroup() %>% 
-group_by(vegetable) %>% 
-mutate(n = n()) %>% 
-arrange(desc(n)) %>% 
-mutate(weekday = wday(date, label = TRUE))
-garden_harvest_maxbyday
+  group_by(date, vegetable) %>% 
+  summarize(veg_total = sum(weight))  %>% 
+  mutate(weight_kg = veg_total/1000) %>% 
+  slice_max(weight_kg, n= 1) %>% 
+  ungroup() %>% 
+  group_by(vegetable) %>% 
+  mutate(n = n()) %>% 
+  arrange(desc(n)) %>% 
+  mutate(weekday = wday(date, label = TRUE))
+  garden_harvest_maxbyday
 ```
 
-```{r, fig.alt = "Left: Graph of most harvested vegetable each day. Notably, the pumpkins had a small numer of high yield days later in the season, while the tomatoes consistently performed well over a longer period of time. Right:  Count of times each vegetable was the highest yeild in a day. Highest count was for tomatoes"}
+```{r, fig.alt = "Left: Graph of most harvested vegetable each day. Notably, the pumpkins had a small numer of high yield days later in the season, while the tomatoes consistently performed well over a longer period of time. Right:  Count of times each vegetable was the highest yeild in a day. Highest count was for tomatoes", fig.asp =  .5}
   maxbyday_plot <- garden_harvest_maxbyday %>% 
         ggplot(aes(y = weight_kg, x = date)) +
         geom_col(aes(fill = fct_reorder(vegetable, n),
@@ -168,10 +172,10 @@ garden_harvest_maxbyday
     ungroup() %>%
     group_by(vegetable) %>% 
     summarize(n = n()) %>%
-      ggplot(aes(y = fct_reorder(vegetable, n), x = n)) +
-        geom_col(aes(fill = fct_reorder(vegetable, n))) +
-        scale_fill_hue() +
-        scale_x_continuous(expand = c(0, 0)) +
+    ggplot(aes(y = fct_reorder(vegetable, n), x = n)) +
+    geom_col(aes(fill = fct_reorder(vegetable, n))) +
+    scale_fill_hue() +
+    scale_x_continuous(expand = c(0, 0)) +
     theme(legend.position ="none",
           panel.grid.major.y = element_blank()) +
     labs(x = "Count of '#1' harvests",
@@ -179,6 +183,7 @@ garden_harvest_maxbyday
     
     (maxbyday_plot + veg_most_max)
 ```
+These graphs are actually taken from my perfect garden graph.
 
 ## Webscraping exercise (also from tutorial)
 
@@ -219,30 +224,88 @@ Then, put all this information into one dataset (tibble or data.frame) Do not in
   
   name <- scrape_col(fall2017, "td.class-schedule-course-title")
   
-  day <- scrape_col(fall2017, "td:nth-child(3)")
+  day <- scrape_col(fall2017, "td:nth-child(3)") %>% 
+    str_sub(start = 7)
   
-  time <- scrape_col(fall2017, "td:nth-child(4)") 
+  time <- scrape_col(fall2017, "td:nth-child(4)") %>% 
+    str_sub(start = 7)
   
-  room <- scrape_col(fall2017, "td:nth-child(5)") 
+  room <- scrape_col(fall2017, "td:nth-child(5)") %>% 
+    str_sub(start = 7)
   
-  instructor <- scrape_col(fall2017, "td:nth-child(6)") 
+  instructor <- scrape_col(fall2017, "td:nth-child(6)") %>% 
+    str_sub(start = 13)
+    
+  avail <- scrape_col(fall2017, "td:nth-child(7)") %>% 
+    str_sub(start = 14)
   
-  avail <- scrape_col(fall2017, "td:nth-child(7)")
+  gened <- scrape_col(fall2017, "#content p:nth-child(2)") %>% 
+    str_sub(start = 35)
   
-  gened <- scrape_col(fall2017, "#content p:nth-child(2)") 
-  
-  description <-
+  description <- scrape_col(fall2017, ".collapsed p:nth-child(1)") %>% 
+    str_sub(start = 3)
   
 
-  tibble(ID = course_ID, name = course_name, )
+  courses2017 <- tibble(ID = ID, Name = name, Day = day, Time = time, Room  = room, Instructor = instructor, Spaces = avail, GenEd = gened, Description = description)
+  
+  courses2017
 ```
 
+I couldn't remove the escape characters, so this was as clean as I could get the information.
+
+
 7.  Create a graph that shows the number of sections offered per department. Hint: The department is a substring of the course number - there are `str_XXX()` functions that can help. Yes, COMP and MATH are the same department, but for this exercise you can just show the results by four letter department code, e.g., with COMP and MATH separate.
+
+```{r, fig.alt = "Bar graph showing the number of distinct course listings were found for each department. the Hispanic Studies department is an outlier with nearly double the count of any other department, but from examining the page we see that many different sections of labs are listed, presumably causing a false inflation in numbers."}
+  courses2017 %>% 
+    mutate(Dept = word(ID)) %>% 
+    group_by(Dept) %>% 
+    summarize(count = n()) %>% 
+    ggplot(aes(y = Dept, x = count, fill = Dept)) +
+    geom_col(position = "dodge", color = "white") +
+    labs(x = "Courses",
+         y = "Department",
+         title = "Courses listed by dept. in Fall 2017") +
+    theme(legend.position = "none")
+```
+I'm not sure why some of the bars are a lot closer together- I used a white border to separate them some but it's still visibly inconsistent. What can I do to remedy that?
 
 8.  Analyze the typical length of course names by department. To do so, create a new data table based on your courses data table, with the following changes:
 
 -   New columns for the length of the title of a course and the length of the description of the course. Hint: `str_length`.\
 -   Remove departments that have fewer than 10 sections of courses. To do so, group by department, then remove observations in groups with fewer than 10 sections (Hint: use filter with n()). Then `ungroup()` the data.\
 -   Create a visualization of the differences across groups in lengths of course names or course descriptions. Think carefully about the visualization you should be using!
+
+```{r, fig.alt =  "The left graph displays the distribution of course title lengths for across all departments with more than 10 courses listed. The right graph shows the average course title lengths in each department"}
+  courses_lengths <- courses2017 %>% 
+    mutate(Dept = word(ID)) %>% 
+    group_by(Dept) %>% 
+    mutate(count = n()) %>% 
+    mutate(title_length = str_length(Name), desc_length = str_length(Description)) %>% 
+    mutate(avg_title = mean(title_length)) %>% 
+    filter(count >= 10) %>% 
+    ungroup()
+    
+    courses_lengths %>% 
+      ggplot(aes(y = Dept, x = title_length)) +
+      geom_bin2d() +
+      labs(x = "Length",
+           y = "Department",
+           fill = "Sections",
+           title = "Distribution of title lengths by department") +
+    
+    courses_lengths %>% 
+      group_by(Dept, avg_title) %>%
+      summarize() %>% 
+      ggplot(aes(y = Dept, x = avg_title, fill = Dept)) +
+      geom_col(color = "white") +
+      labs(x= "Length",
+           y = NULL,
+           title = "Average length of course titles") +
+      theme(legend.position = "none")
+
+```
+
+[GitHub][https://github.com/COEPLeader/Exercise_6]
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
