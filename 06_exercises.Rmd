@@ -11,7 +11,7 @@ output:
 ---      
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -101,18 +101,21 @@ Once your repository is created, you should always open your **project** rather 
 
 3.  Create a table using `gt` with data from your project or from the `garden_harvest` data if your project data aren't ready. Use at least 3 `gt()` functions.
 
-I'm going to use the data from garden_harvest since my project data is 1 GB and I don't want to have to worry about including that with my exercise.
+I'm going to use the data from garden_harvest since my project data is 1 GB and I don't want to have to worry about including that with my exercise. Also, how do we chage labels in the table (like making the headers capitalized?). It's not a pretty table, nor a useful table, but it was informative to make
 
-```{r, fig.alt = "Table showing the harvests over time of each vegetable, split into varieties and by harvest date."}
+```{r, fig.alt = "Table showing the harvests over time in June of each vegetable."}
   harvest_table <- garden_harvest %>% 
-    gt(rowname_col = "variety",
+    group_by(vegetable, units, date) %>% 
+    summarize(weight = sum(weight)) %>% 
+    filter(date(date) <= date("2020-07-01")) %>% 
+    gt(rowname_col = "date",
        groupname_col = "vegetable") %>% 
     tab_header(title = "Harvest Data") %>% 
     tab_spanner(label = "2020", columns = c(date)) %>% 
     tab_options(column_labels.background.color = "blue") %>% 
     fmt_date(columns = c(date),
            date_style = "day_month")
-
+  
   harvest_table
     
 ```
@@ -126,7 +129,7 @@ colors = scales::col_numeric(
       ) %>% as.character()
 ```
 
-![](garden_table.html){width="600," height="1000"}
+
 
 I would love to do this but I simply don't have the time or energy at this point during the semester. 
 
@@ -149,9 +152,7 @@ garden_harvest_maxbyday <- garden_harvest %>%
 ```{r, fig.alt = "Left: Graph of most harvested vegetable each day. Notably, the pumpkins had a small numer of high yield days later in the season, while the tomatoes consistently performed well over a longer period of time. Right:  Count of times each vegetable was the highest yeild in a day. Highest count was for tomatoes", fig.asp =  .5}
   maxbyday_plot <- garden_harvest_maxbyday %>% 
         ggplot(aes(y = weight_kg, x = date)) +
-        geom_col(aes(fill = fct_reorder(vegetable, n),
-                     label = vegetable,
-                     group = weekday),
+        geom_col(aes(fill = fct_reorder(vegetable, n)),
                  position = "dodge") +
         scale_y_continuous(limits = c(0,50),expand = c(0, 0)) +
         scale_fill_hue() +
@@ -183,6 +184,7 @@ garden_harvest_maxbyday <- garden_harvest %>%
     
     (maxbyday_plot + veg_most_max)
 ```
+
 These graphs are actually taken from my perfect garden graph.
 
 ## Webscraping exercise (also from tutorial)
@@ -268,6 +270,7 @@ I couldn't remove the escape characters, so this was as clean as I could get the
          title = "Courses listed by dept. in Fall 2017") +
     theme(legend.position = "none")
 ```
+
 I'm not sure why some of the bars are a lot closer together- I used a white border to separate them some but it's still visibly inconsistent. What can I do to remedy that?
 
 8.  Analyze the typical length of course names by department. To do so, create a new data table based on your courses data table, with the following changes:
@@ -306,6 +309,6 @@ I'm not sure why some of the bars are a lot closer together- I used a white bord
 
 ```
 
-[GitHub][https://github.com/COEPLeader/Exercise_6]
+[GitHub](https://github.com/COEPLeader/Exercise_6)
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
